@@ -16,24 +16,57 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Category tree: world-readable, admin-writable
+    match /categories/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Inquiries + analytics are written by the server (Admin SDK) and read
+    // through admin API routes only — never directly by a browser.
+    match /inquiries/{id} {
+      allow read, write: if false;
+    }
+    match /analytics_daily/{id} {
+      allow read, write: if false;
+    }
+    match /product_stats/{id} {
+      allow read, write: if false;
+    }
+
     // Customer profiles: each user owns their doc
     match /users/{uid} {
-      allow read, update, delete: if isOwner(uid) || isAdmin();
-      allow create: if isOwner(uid);
+      allow read, delete: if isOwner(uid) || isAdmin();
+      // Customers can never promote themselves to admin.
+      allow create: if isOwner(uid) && request.resource.data.get('role', 'customer') == 'customer';
+      allow update: if isAdmin()
+        || (isOwner(uid) && request.resource.data.get('role', 'customer') == resource.data.get('role', 'customer'));
     }
 
     // Orders: owner reads own; admin reads all; create on checkout
+    // Orders are created server-side after payment verification (Admin SDK).
     match /orders/{id} {
-      allow create: if true; // guest checkout permitted; validate server-side
+      allow create: if false;
       allow read: if isAdmin() || (isSignedIn() && resource.data.uid == request.auth.uid);
       allow update, delete: if isAdmin();
     }
 
-    // Reviews: anyone reads; signed-in creates; admin moderates
+    // Reviews: only approved ones are public; admins see and moderate everything
     match /reviews/{id} {
-      allow read: if true;
-      allow create: if isSignedIn();
+      allow read: if resource.data.approved == true || isAdmin();
+      allow create: if isSignedIn() && request.resource.data.approved == false;
       allow update, delete: if isAdmin();
+    }
+
+    // Saved carts (abandonment tracking) — owner writes, server reads via Admin SDK
+    match /carts/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow write: if isOwner(uid);
+    }
+
+    // Mail queue is written by the server only; never client-readable
+    match /mail/{id} {
+      allow read, write: if false;
     }
   }
 }
