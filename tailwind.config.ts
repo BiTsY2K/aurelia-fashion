@@ -9,6 +9,8 @@ const config: Config = {
         carbon: { DEFAULT: '#1A1A1A', soft: '#222222', muted: '#6B6660' },  // 30% — structure & text
         champagne: { DEFAULT: '#C8A96A', deep: '#B6925A' },   // 10% — hook accent
         terracotta: { DEFAULT: '#A36A52' },
+        blush: { DEFAULT: '#EBD9D1', soft: '#F6ECE7' }, // pastel wash for bespoke + kids surfaces
+        rose: { DEFAULT: '#B76E79', deep: '#9A5762' },  // rose-gold secondary accent
         line: '#E7E0D6', // hairline dividers on ivory
       },
       fontFamily: {
