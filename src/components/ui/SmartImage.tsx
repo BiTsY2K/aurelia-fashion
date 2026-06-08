@@ -11,7 +11,9 @@ import { cn } from '@/lib/utils';
 export default function SmartImage({ className, alt, sizes, ...props }: ImageProps) {
   const [loaded, setLoaded] = useState(false);
   return (
-    <span className={cn('img-skeleton block', loaded && 'after:hidden bg-transparent')}>
+    // `fill` images size to their positioned parent, so the wrapper must fill it too
+    // (a plain relative span would collapse to 0px tall and hide the image).
+    <span className={cn('img-skeleton block', props.fill && '!absolute inset-0', loaded && 'after:hidden bg-transparent')}>
       <Image
         {...props}
         alt={alt}
