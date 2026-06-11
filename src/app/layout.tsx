@@ -4,6 +4,7 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import CartDrawer from '@/components/layout/CartDrawer';
 import WhatsAppButton from '@/components/layout/WhatsAppButton';
+import { AuthProvider } from '@/context/auth-provider';
 
 const playfair = { variable: '--font-display' };
 
@@ -54,11 +55,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
         />
-        <Header />
-        <main>{children}</main>
-        <Footer />
-        <CartDrawer />
-        <WhatsAppButton />
+        <AuthProvider>
+          <Header />
+          <main>{children}</main>
+          <Footer />
+          <CartDrawer />
+          <WhatsAppButton />
+        </AuthProvider>
       </body>
     </html>
   );
