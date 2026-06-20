@@ -48,7 +48,7 @@ export const useCart = create<CartState>()(
         })),
       clear: () => set({ items: [] }),
     }),
-    { name: 'Aurelia-cart' }, // synced to localStorage; Firestore sync added in Phase 2
+    { name: 'aurelia-cart' }, // synced to localStorage; Firestore sync added in Phase 2
   ),
 );
 
