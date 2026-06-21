@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(uid) { return isSignedIn() && request.auth.uid == uid; }
+    function isAdmin() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Catalog: world-readable, admin-writable
+    match /products/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Customer profiles: each user owns their doc
+    match /users/{uid} {
+      allow read, update, delete: if isOwner(uid) || isAdmin();
+      allow create: if isOwner(uid);
+    }
+
+    // Orders: owner reads own; admin reads all; create on checkout
+    match /orders/{id} {
+      allow create: if true; // guest checkout permitted; validate server-side
+      allow read: if isAdmin() || (isSignedIn() && resource.data.uid == request.auth.uid);
+      allow update, delete: if isAdmin();
+    }
+
+    // Reviews: anyone reads; signed-in creates; admin moderates
+    match /reviews/{id} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
+  }
+}

@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-display: 'Playfair Display';
+    --font-sans: 'Inter';
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-ivory text-carbon antialiased;
+    font-feature-settings: 'ss01', 'cv11';
+  }
+
+  ::selection {
+    @apply bg-champagne/30 text-carbon;
+  }
+
+  /* Editorial display headings default to the serif face */
+  h1, h2, h3 {
+    @apply font-display;
+  }
+
+  /* Respect users who prefer reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-content px-5 sm:px-8;
+  }
+
+  /* Primary pill button — the black CTA from the reference */
+  .btn-pill {
+    @apply inline-flex items-center gap-3 rounded-pill bg-carbon px-6 py-3 text-sm font-medium
+           text-ivory transition-transform duration-300 ease-brand hover:scale-[1.02]
+           focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
+           focus-visible:outline-champagne;
+  }
+
+  .btn-pill-ghost {
+    @apply inline-flex items-center gap-2 rounded-pill border border-line bg-ivory px-5 py-2.5
+           text-sm font-medium text-carbon transition-colors hover:border-carbon
+           focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
+           focus-visible:outline-champagne;
+  }
+
+  .eyebrow {
+    @apply text-xs font-medium uppercase tracking-[0.2em] text-carbon-muted;
+  }
+
+  /* Shimmer placeholder for the optimized image wrapper */
+  .img-skeleton {
+    @apply relative overflow-hidden bg-ivory-dim;
+  }
+  .img-skeleton::after {
+    @apply absolute inset-0 -translate-x-full;
+    content: '';
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+    animation: shimmer 1.4s infinite;
+  }
+}
