@@ -1,27 +1,46 @@
 import Link from 'next/link';
+import type { CategoryNode } from '@/types';
 
-const COLUMNS = [
+const STATIC_COLUMNS = [
+  {
+    title: 'Atelier',
+    links: [
+      { label: 'Bespoke Design', href: '/bespoke' },
+      { label: 'AI Style Assistant', href: '/style-assistant' },
+      { label: 'Style Quiz', href: '/style-quiz' },
+      { label: 'The Studio', href: '/studio' },
+    ],
+  },
   {
     title: 'Customer Care',
-    links: ['Contact Us', 'FAQs', 'Shipping & Returns', 'Size Guide', 'Blog'],
-  },
-  {
-    title: 'Collections',
-    links: ['New Arrivals', 'Best Sellers', 'Accessories', 'Sale'],
-  },
-  {
-    title: 'Connect With Us',
-    links: ['Instagram', 'Facebook', 'TikTok'],
+    links: [
+      { label: 'Contact Us', href: '/contact' },
+      { label: 'Size Guide', href: '/size-guide' },
+      { label: 'Wishlist', href: '/wishlist' },
+      { label: 'My Account', href: '/account' },
+    ],
   },
 ];
 
-export default function Footer() {
+export default function Footer({ tree }: { tree: CategoryNode[] }) {
+  // One "Shop" column per department, so a new line (Men) appears here automatically.
+  const COLUMNS = [
+    ...tree.map((dept) => ({
+      title: dept.name,
+      links: [
+        ...dept.children.map((c) => ({ label: c.name, href: `/collections/${c.slug}` })),
+        { label: `All ${dept.name}`, href: `/collections/${dept.slug}` },
+      ],
+    })),
+    ...STATIC_COLUMNS,
+  ];
+
   return (
     <footer className="mt-24 border-t border-line bg-ivory-soft">
-      <div className="container-page grid gap-10 py-14 md:grid-cols-[1.4fr_repeat(3,1fr)]">
+      <div className="container-page grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-[1.4fr_repeat(4,1fr)]">
         <div>
           <p className="font-display text-2xl">Aurelia</p>
-          <p className="mt-3 max-w-xs text-sm text-carbon-muted">Subscribe for new drops, private sales, and styling notes.</p>
+          <p className="mt-3 max-w-xs text-sm text-carbon-muted">Couture and bespoke designer wear for women and young girls — made to your measure, finished by hand.</p>
           <form className="mt-4 flex max-w-sm items-center gap-2">
             <label htmlFor="newsletter" className="sr-only">Email address</label>
             <input
@@ -40,8 +59,8 @@ export default function Footer() {
             <p className="eyebrow mb-4">{col.title}</p>
             <ul className="space-y-2.5">
               {col.links.map((l) => (
-                <li key={l}>
-                  <Link href="#" className="text-sm text-carbon-muted transition-colors hover:text-carbon">{l}</Link>
+                <li key={l.label}>
+                  <Link href={l.href} className="text-sm text-carbon-muted transition-colors hover:text-carbon">{l.label}</Link>
                 </li>
               ))}
             </ul>
