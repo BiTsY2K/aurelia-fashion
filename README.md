@@ -1,147 +1,103 @@
-# Aurelia — Fashion That Defines You
+# Aurelia — Couture & Bespoke Designer Wear
 
-A modern, SEO-friendly boutique storefront built on **Next.js 15 (App Router) · React 19 · Tailwind CSS · Firebase**.  
-Designed to start at **₹0 / $0** (Vercel Hobby + Firebase Spark free tiers) and scale without re-architecting.
+A luxury storefront and admin back office for a custom-tailoring boutique: women's sarees, lehengas, gowns and Indo-Western wear, plus girls' ethnic, frocks and party wear. Built on **Next.js 15 + Tailwind + Framer Motion + Firebase**, so it runs at **₹0 / $0** on the Vercel Hobby and Firebase Spark free tiers.
 
----
-
-## Tech stack
-
-| Layer | Technology |
-|---|---|
-| Framework | Next.js 15 (App Router) |
-| UI | React 19 + Tailwind CSS 3 |
-| Language | TypeScript 5 |
-| State | Zustand 5 (cart, persisted to `localStorage`) |
-| Backend | Firebase 11 — Firestore, Auth, Storage |
-| Hosting | Vercel (frontend) + Firebase (data) |
-
----
-
-## Phase 1 — what's included
-
-- **Design system** — 60-30-10 palette (Ivory `#FAF7F2` / Carbon `#1A1A1A` / Champagne `#C8A96A`) with Playfair Display + Inter, wired through Tailwind tokens.
-- **Homepage** — Hero, "Best Collection" grid with filter tabs + sort, curated editorial sections, testimonials, "Own Your Style" CTA, and a newsletter footer.
-- **Responsive header** — mobile flyout menu + live cart badge.
-- **Slide-over cart drawer** — subtotal + free-shipping progress bar.
-- **`<SmartImage>`** — AVIF/WebP, lazy loading, shimmer placeholder.
-- **Firebase client** (`src/lib/firebase.ts`) — falls back to demo products when no keys are present, so you can preview immediately.
-- **SEO** — `<Metadata>` + OpenGraph/Twitter tags, JSON-LD Organization schema, dynamic `sitemap.xml` and `robots.txt`.
-- **Floating WhatsApp concierge** button (first WhatsApp hook).
-- **Firestore + Storage security rules** — ready to deploy.
-
-> Phase 1 renders fully without any Firebase keys using demo data.
-
----
-
-## Getting started
+> Without any keys it runs entirely on a built-in demo catalog, so you can preview it straight away.
 
 ```bash
 npm install
-cp .env.example .env.local   # fill in once you have a Firebase project (optional for first run)
+cp .env.example .env.local   # fill in as you go — all optional for a first preview
 npm run dev                  # http://localhost:3000
 ```
 
-```bash
-npm run build    # production build
-npm start        # serve production build
-npm run typecheck  # TypeScript validation
-```
+---
+
+## What's inside
+
+**Storefront**
+- Category tree is data, not code: Women (Sarees, Lehengas, Gowns, Indo-Western) and Kids (Girls' Ethnic, Frocks, Party Wear) drive the mega-menu, footer, homepage tiles, filters and the admin product editor. **Men** is already defined but hidden; switch it on in *Admin → Categories*.
+- `/collections/[slug]` catalog pages with sub-category chips and filters for occasion, size (per department scale), colour, price and availability.
+- Product pages with a hi-res carousel (hover zoom, swipe, full-screen lightbox), SKU, design story, fabric and craft, a size guide modal, and **custom measurement inputs** (women / kids field sets).
+- **Enquire on WhatsApp** opens a pre-filled message with product, SKU, colour, size or measurements, and the page URL.
+- **Order via WhatsApp** collects name, phone, city and event date (pre-filled from the account and remembered on the device), then opens a pre-filled order chat.
+- Every WhatsApp click and every form submission is logged to the admin inquiry tracker.
+- `/bespoke` (design request with garment, budget and measurements), `/contact`, `/size-guide`.
+- Also included: cart, Razorpay checkout, accounts, wishlist, style quiz and the Studio (layering canvas).
+
+**Admin (`/admin`)**
+- **Overview:** page views, WhatsApp clicks, inquiries, most-viewed and most-enquired products, plus online-order revenue.
+- **Inquiries:** filter by type and status, one-tap WhatsApp reply, move each lead new → contacted → converted / closed.
+- **Products:** create, edit, archive/restore, delete. Includes SKU (auto-generated if blank), department and sub-category, draft/active/archived status, custom-fit and made-to-order flags, lead time, design story, multi-photo upload per colour, and a stock matrix that follows the department's size scale. One-click demo import.
+- **Categories:** add, rename, reorder, hide or delete departments and sub-categories, with cover images and a size chart per department.
+- **Orders** and **Reviews** moderation.
+
+**AI readiness (Phase 2)**
+- `/style-assistant` has a working outfit matcher (occasion, colour, weather, women/kids) and a virtual try-on placeholder. Photos stay on the device.
+- Concierge chat (floating button) runs through `src/lib/ai/provider.ts`, a vendor-neutral adapter. Set `OPENAI_API_KEY` (or any OpenAI-compatible base URL) or `HF_TOKEN` and the chat goes live, grounded in your real catalog. Without a key it says "coming soon" and hands off to WhatsApp.
 
 ---
 
-## Environment variables
+## Database schema (Firestore)
 
-Copy `.env.example` to `.env.local` and fill in the values.
+| Collection | Key fields | Access |
+|---|---|---|
+| `categories/{slug}` | name, slug, parentId (null = department), sizeSet, order, active, image, description | public read · admin write |
+| `products/{id}` | sku, name, slug, price, compareAtPrice, category (dept slug), subcategory, collection, status, tags, occasions, designStory, fabric, fabricCare, variants[{name,hex,images}], sizesStock{colour→size→qty}, customizable, madeToOrder, leadTimeDays, featured | public read · admin write |
+| `inquiries/{id}` | type (enquiry/order/bespoke/contact), channel (whatsapp/form), status, product ref + sku, size, measurements, name, phone, email, city, occasionDate, message, pageUrl, createdAt | server only |
+| `analytics_daily/{YYYY-MM-DD}` | pageViews, productViews, inquiries, whatsappClicks | server only |
+| `product_stats/{productId}` | views, inquiries, whatsappClicks | server only |
+| `users/{uid}` | email, displayName, **role** (`customer`/`admin`), wishlist, styleProfile | owner/admin; customers can't change `role` |
+| `orders`, `reviews`, `carts`, `mail` | commerce and operations | see `firestore.rules` |
 
-| Variable | Description |
-|---|---|
-| `NEXT_PUBLIC_FIREBASE_API_KEY` | Firebase web app API key |
-| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | `<project>.firebaseapp.com` |
-| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | Firebase project ID |
-| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | `<project>.appspot.com` |
-| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | FCM sender ID |
-| `NEXT_PUBLIC_FIREBASE_APP_ID` | Firebase app ID |
-| `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID` | Google Analytics measurement ID |
-| `NEXT_PUBLIC_SITE_URL` | Canonical site URL (default `http://localhost:3000`) |
-| `NEXT_PUBLIC_WHATSAPP_NUMBER` | WhatsApp number with country code, e.g. `919999999999` |
+Types live in `src/types/index.ts`; size scales, measurement fields and size charts in `src/lib/catalog.ts`.
 
 ---
 
-## Free hosting (zero cost)
+## Deploy for $0 (Vercel + Firebase)
 
-1. Push to GitHub.
-2. Import the repo into **Vercel** (Hobby plan, free) — it auto-detects Next.js.
-3. Add all `NEXT_PUBLIC_*` env vars in the Vercel dashboard.
-4. Create a **Firebase** project (Spark/free): enable **Auth**, **Firestore**, and **Storage**, then paste the config values into your env vars.
-5. Deploy security rules:
+**1. Firebase (Spark plan, free)**
+1. Create a project at [console.firebase.google.com](https://console.firebase.google.com).
+2. **Authentication** → enable Email/Password and Google.
+3. **Firestore Database** → create (production mode, region near your customers, e.g. `asia-south1`).
+4. **Storage** → enable it. Note: new projects may need the pay-as-you-go Blaze plan for Storage. Blaze still has a free allowance, so set a budget alert of ₹100 and you'll stay at ₹0 for a small boutique.
+5. *Project settings → Your apps → Web app* → copy the config into the `NEXT_PUBLIC_FIREBASE_*` variables.
+6. *Project settings → Service accounts → Generate new private key* → paste the JSON **on one line** into `FIREBASE_SERVICE_ACCOUNT`. This powers the admin dashboard, inquiry logging and analytics.
+7. Deploy the security rules:
    ```bash
+   npm i -g firebase-tools && firebase login
+   firebase use --add            # pick your project
    firebase deploy --only firestore:rules,storage
    ```
 
+**2. Make yourself admin**
+Sign up on your site, then in Firestore open `users/{your-uid}` and set `role` to `admin`. Sign out and back in, then open `/admin`:
+- *Categories* → **Save default categories**
+- *Products* → **Import the demo catalog**, then replace the photos and details with your own.
+
+**3. Vercel (Hobby, free)**
+1. Push the repo to GitHub and import it at [vercel.com/new](https://vercel.com/new). Next.js is detected automatically.
+2. Add every variable from `.env.local` under *Settings → Environment Variables*. Set `NEXT_PUBLIC_SITE_URL` to your Vercel URL and `NEXT_PUBLIC_WHATSAPP_NUMBER` to your business number (digits only, e.g. `919876543210`).
+3. Deploy. In Firebase *Authentication → Settings → Authorized domains*, add your Vercel domain.
+4. Optional: a custom domain in Vercel (the domain is the only real cost).
+
+**Optional add-ons:** Razorpay keys for online payments (WhatsApp ordering works without them), an AI key for the concierge, and `CRON_SECRET` plus the WhatsApp Cloud API for abandoned-cart nudges (`vercel.json` schedules the jobs).
+
+### Free-tier headroom
+Firestore Spark gives 50k reads and 20k writes per day. Each page view costs 1–2 writes and the dashboard about 40 reads, which comfortably covers thousands of visitors a day. Vercel Hobby covers 100 GB bandwidth a month.
+
 ---
+
+## Before launch
+- Replace the Unsplash placeholder photos and the sample testimonials (`src/components/home/Sections.tsx`) with your own.
+- Set your real business details on `/contact`, plus social links in `src/app/layout.tsx` and the footer.
 
 ## Project structure
-
 ```
 src/
-  app/
-    layout.tsx          root layout — Header, Footer, CartDrawer, WhatsAppButton
-    page.tsx            homepage
-    not-found.tsx       404 page
-    globals.css         base styles + Tailwind directives
-    sitemap.ts          dynamic sitemap.xml
-    robots.ts           robots.txt
-  components/
-    home/
-      Hero.tsx
-      CollectionGrid.tsx  filter tabs + sort
-      Sections.tsx        editorial, testimonials, CTA
-    layout/
-      Header.tsx
-      Footer.tsx
-      CartDrawer.tsx
-      WhatsAppButton.tsx
-    product/
-      ProductCard.tsx
-    ui/
-      SmartImage.tsx      AVIF/WebP + shimmer wrapper
-  context/
-    cart-store.ts         Zustand cart (localStorage-persisted)
-  lib/
-    firebase.ts           Firebase client + graceful fallback
-    products.ts           data access layer
-    utils.ts
-  types/
-    index.ts              Firestore data model (Product, Order, UserProfile, …)
-
-firestore.rules           Firestore security rules
-storage.rules             Firebase Storage security rules
+  app/                pages, admin, API routes (inquiries, track, ai/chat, razorpay, admin/*)
+  components/         layout (Header, Concierge…), product, home, forms, ai, ui
+  lib/                catalog (categories/sizes), products, enquiry (WhatsApp), pricing-server,
+                      analytics-server, ai/provider, firebase(-admin)
+  types/              Firestore data model
+firestore.rules  storage.rules  firebase.json  vercel.json
 ```
-
----
-
-## Firestore data model
-
-| Collection | Access |
-|---|---|
-| `products` | World-readable · admin-writable |
-| `users` | Owner read/write · admin full access |
-| `orders` | Guest create · owner read · admin full access |
-| `reviews` | World-readable · signed-in create · admin moderate |
-
----
-
-## Phase roadmap
-
-| Phase | Focus | Status |
-|---|---|---|
-| **1 — Foundation** | Design system, catalog UI, cart, SEO, WhatsApp button | ✅ done |
-| **2 — Commerce core** | Auth (email / Google / Apple), Firestore product seed + admin CRUD, product detail pages, checkout + payment (Stripe / Razorpay), inventory deduction | next |
-| **3 — Operations** | Admin dashboard, order tracker, transactional emails, review moderation, full responsive QA | |
-| **4 — Personalization** | Fit & style quiz, Complete-the-Look, wishlist, PDP WhatsApp inquiry | |
-| **5 — Signature studio** | Mix-and-match outfit sandbox, abandoned-cart WhatsApp automation, analytics dashboards | |
-
----
-
-Swap the placeholder Unsplash images for your Firebase Storage URLs as you seed real products in Phase 2.
