@@ -3,5 +3,6 @@
     "firestore.indexes.json": "jsonc",
     "firestore.rules": "plaintext",
     "storage.rules": "plaintext"
-  }
+  },
+  "css.lint.unknownAtRules": "ignore"
 }
